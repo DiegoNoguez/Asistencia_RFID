@@ -22,13 +22,6 @@ def login_user(data: LoginRequest):
                 if result.password != data.password:
                     raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
-                # Obtener materias inscritas
-                materias_query = select(materia_alumno.c.clave_materia).where(
-                    materia_alumno.c.matricula == data.usuario
-                )
-                materias_result = conn.execute(materias_query).fetchall()
-                materias = [row.clave_materia for row in materias_result]
-
                 return {
                     "message": "Login exitoso",
                     "matricula": result.matricula,
