@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Horario del Alumno - Grupo 3401</title>
+  <link rel="stylesheet" href="/static/css/alumno.css">
+</head>
+<body>
+  <div class="login-container">
+    <h2>Mi Horario Completo con Asistencia</h2>
+    <div id="infoAlumno" style="margin-bottom: 20px; text-align: left;"></div>
+    <table border="1" style="width:100%; margin-top: 20px;">
+      <thead>
+        <tr>
+          <th>Materia</th>
+          <th>Día</th>
+          <th>Hora</th>
+          <th>Profesor</th>
+          <th>Asistencia</th>
+        </tr>
+      </thead>
+      <tbody id="tablaHorario"></tbody>
+    </table>
+
+    <br>
+    <button onclick="volver()">Volver</button>
+  </div>
+
+  <script>
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (!usuario || usuario.rol != 1) location.href = "/static/login.html";
+
+    const infoDiv = document.getElementById("infoAlumno");
+    infoDiv.innerHTML = `
+      <strong>Nombre:</strong> ${usuario.nombre} ${usuario.ape1} ${usuario.ape2 || ""}<br>
+      <strong>Matrícula:</strong> ${usuario.matricula}<br>
+    `;
+
+    const pases = JSON.parse(localStorage.getItem("pases") || "{}");
+
+    const horario = [
+      // Lunes
+      { clave: "SCA-1026", materia: "Taller de Sistemas Operativos", dia: "Lunes", hora: "07:00–09:00", profesor: "M.A. Anselmo Martínez Montalvo" },
+      { clave: "INGLES", materia: "Inglés", dia: "Lunes", hora: "09:00–11:00", profesor: "L.L. Isidoro Cruz Huitrón" },
+      { clave: "AEF-1031", materia: "Fundamentos de Base de Datos", dia: "Lunes", hora: "11:00–13:00", profesor: "Mtra. Yadira Esther Jiménez Pérez" },
+      { clave: "ACF-0905", materia: "Ecuaciones Diferenciales", dia: "Lunes", hora: "13:00–15:00", profesor: "ING. Rodolfo Guadalupe Alcántara Rosales" },
+
+      // Martes
+      { clave: "AEF-1031", materia: "Tutorias", dia: "Martes", hora: "08:00–10:00", profesor: "Mtra. Yadira Esther Jiménez Pérez" },
+      { clave: "ACA-0907", materia: "Taller de Ética", dia: "Martes", hora: "10:00–12:00", profesor: "C.P. Sonia Vázquez Alcántara" },
+      { clave: "SCD-1027", materia: "Tópicos Avanzados de Programación", dia: "Martes", hora: "12:00–15:00", profesor: "Víctor David Maya Arce" },
+      { clave: "INGLES", materia: "Inglés", dia: "Martes", hora: "15:00–16:00", profesor: "L.L. Isidoro Cruz Huitrón" },
+
+      // Miércoles
+      { clave: "AEF-1031", materia: "Fundamentos de Base de Datos", dia: "Miércoles", hora: "08:00–11:00", profesor: "Mtra. Yadira Esther Jiménez Pérez" },
+      { clave: "SCC-1017", materia: "Métodos Numéricos", dia: "Miércoles", hora: "11:00–13:00", profesor: "LIC. Juan Alberto Martínez Zamora" },
+      { clave: "SCD-1003", materia: "Arquitectura de Computadoras", dia: "Miércoles", hora: "13:00–15:00", profesor: "Ing. Alfredo Aguilar López" },
+
+      // Jueves
+      { clave: "SCA-1026", materia: "Taller de Sistemas Operativos", dia: "Jueves", hora: "07:00–09:00", profesor: "M.A. Anselmo Martínez Montalvo" },
+      { clave: "SCD-1027", materia: "Tópicos Avanzados de Programación", dia: "Jueves", hora: "09:00–11:00", profesor: "Víctor David Maya Arce" },
+      { clave: "SCC-1017", materia: "Métodos Numéricos", dia: "Jueves", hora: "11:00–13:00", profesor: "LIC. Juan Alberto Martínez Zamora" },
+      { clave: "ACA-0907", materia: "Taller de Ética", dia: "Jueves", hora: "13:00–15:00", profesor: "C.P. Sonia Vázquez Alcántara" },
+
+      // Viernes
+      { clave: "INGLES", materia: "Inglés", dia: "Viernes", hora: "07:00–09:00", profesor: "L.L. Isidoro Cruz Huitrón" },
+      { clave: "SCD-1003", materia: "Arquitectura de Computadoras", dia: "Viernes", hora: "09:00–12:00", profesor: "Ing. Alfredo Aguilar López" },
+      { clave: "ACF-0905", materia: "Ecuaciones Diferenciales", dia: "Viernes", hora: "12:00–15:00", profesor: "ING. Rodolfo Guadalupe Alcántara Rosales" }
+    ];
+
+    const materiasAlumno = usuario.materias;
+    const tbody = document.getElementById("tablaHorario");
+    const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+
+    dias.forEach(dia => {
+      const filaDia = document.createElement("tr");
+      filaDia.innerHTML = `<td colspan='5'><strong>${dia}</strong></td>`;
+      tbody.appendChild(filaDia);
+
+      horario.filter(h => h.dia === dia && materiasAlumno.includes(h.clave)).forEach(h => {
+        let estado = "No registrado";
+        if (pases[h.clave]) {
+          const registro = pases[h.clave].find(p => p.id_usuario === usuario.id_usuario);
+          if (registro) estado = registro.presente ? "Presente" : "Ausente";
+        }
+
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${h.materia}</td>
+          <td>${h.dia}</td>
+          <td>${h.hora}</td>
+          <td>${h.profesor}</td>
+          <td>${estado}</td>
+        `;
+        tbody.appendChild(fila);
+      });
+    });
+
+    function volver() {
+      window.location.href = "/static/login.html";
+    }
+  </script>
+</body>
+</html>

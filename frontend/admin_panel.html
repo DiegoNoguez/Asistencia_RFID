@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Panel Administrador</title>
+    <link rel="stylesheet" href="/static/css/admin.css" />
+</head>
+<body>
+    <div class="login-container">
+    <h1>Bienvenido, <span id="nombreAdmin"></span></h1>
+
+    <label for="grupoSelect"><strong>Seleccionar grupo:</strong></label>
+    <select id="grupoSelect">
+        <option value="3401">3401</option>
+    </select>
+
+    <h3>Opciones del sistema:</h3>
+    <div class="opciones">
+        <a href="#" onclick="redirigir('/static/admin_alumnos.html')">👥 Gestionar alumnos</a>
+        <a href="#" onclick="redirigir('/static/horario.html')">📆 Ver horario completo</a>
+        <a href="#" onclick="redirigir('/static/ver_pase_general.html')">✅ Ver pase de lista general</a>
+    </div>
+
+    <button class="btn-excel" onclick="generarExcel()">🧾 Generar Excel general</button>
+    <br/><br />
+    <a href="/static/login.html">Cerrar sesión</a>
+    </div>
+
+    <script>
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (!usuario || usuario.rol != 3) {
+        location.href = "/static/login.html";
+    } else {
+        document.getElementById("nombreAdmin").textContent = usuario.nombre;
+    }
+
+    function redirigir(pagina) {
+        const grupo = document.getElementById("grupoSelect").value;
+        localStorage.setItem("grupoSeleccionado", grupo);
+        location.href = pagina;
+    }
+
+    function generarExcel() {
+        alert("Excel general del sistema generado (simulado)");
+    }
+    </script>
+</body>
+</html>

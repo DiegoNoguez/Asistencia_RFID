@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <link rel="stylesheet" href="/static/css/login.css">
+</head>
+<body>
+  <div class="login-container">
+    <h1>Iniciar Sesión</h1>
+    <form id="loginForm">
+      <select id="rol">
+        <option value="1">Alumno</option>
+        <option value="2">Profesor</option>
+        <option value="3">Administrador</option>
+      </select>
+      <input type="text" id="matricula" placeholder="Matrícula" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
+      <button type="submit">Entrar</button>
+      <p id="error" class="error-msg"></p>
+    </form>
+  </div>
+  <script src="/static/js/login.js"></script>
+</body>
+</html>
