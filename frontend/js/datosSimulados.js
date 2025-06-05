@@ -7,7 +7,7 @@ const usuariosSimulados = [
     nombre: "ANGEL EDUARDO",
     ape1: "ANGELES",
     ape2: "MIRANDA",
-    correo: "angel@ejemplo.com",
+    password: "pass1234",
     grupo: "3401",
     materias: [
       "ACF-0905",

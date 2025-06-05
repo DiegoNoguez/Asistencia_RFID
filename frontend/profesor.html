@@ -20,8 +20,8 @@
       <select id="materiaSelect"></select>
 
       <div style="margin-top: 20px;">
-        <button onclick="redirigir('ver_pase.html')">Ver pase guardado</button>
-        <button onclick="redirigir('horario.html')">Ver horario</button>
+        <button onclick="redirigir('/static/ver_pase.html')">Ver pase guardado</button>
+        <button onclick="redirigir('/static/horario.html')">Ver horario</button>
       </div>
     </div>
     <br>
@@ -31,7 +31,7 @@
   <script src="/static/js/datosSimulados.js"></script>
   <script>
     const profesor = JSON.parse(localStorage.getItem("usuario"));
-    if (!profesor || profesor.rol !== "2") location.href = "login.html";
+    if (!profesor || profesor.rol !== 2) location.href = "/static/login.html";
     document.getElementById("nombreProfesor").textContent = profesor.nombre + " " + profesor.ape1;
 
     function cargarMaterias() {

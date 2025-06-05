@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Horario</title>
-  <link rel="stylesheet" href="/static/css/horario.css">
+  <link rel="stylesheet" href="css/horario.css">
 </head>
 <body>
   <div class="login-container">
@@ -25,7 +25,7 @@
   <script src="/static/js/datosSimulados.js"></script>
   <script>
     const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario || (usuario.rol !== "2" && usuario.rol !== "3")) {
+    if (!usuario || (usuario.rol !== 2 && usuario.rol !== 3)) {
       location.href = "/static/login.html";
     }
 
@@ -60,7 +60,7 @@
     ];
 
 
-    const materiasUsuario = (usuario.rol === "2")
+    const materiasUsuario = (usuario.rol == 2)
       ? usuario.materias.map(m => m.clave)
       : horario.map(h => h.clave); // admin ve todo
 
@@ -79,7 +79,7 @@
     });
 
     function volver() {
-      if (usuario.rol === "3") window.location.href = "/static/admin_panel.html";
+      if (usuario.rol === 3) window.location.href = "/static/admin_panel.html";
       else window.location.href = "/static/profesor.html";
     }
   </script>

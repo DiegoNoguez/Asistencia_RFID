@@ -1,57 +1,61 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import select
-from database import engine
-from models.usuario import usuario, alumno
+from sqlalchemy.ext.asyncio import AsyncSession
+from models.usuario import Usuario, Alumno  # Importamos las clases
+from database import get_db
 from schemas.login import LoginRequest
-from models.materia_alumno import materia_alumno 
 
 router = APIRouter(prefix="/login", tags=["Login"])
 
 @router.post("/")
-def login_user(data: LoginRequest):
+async def login_user(
+    data: LoginRequest,
+    db: AsyncSession = Depends(get_db)
+):
     try:
-        with engine.connect() as conn:
-            print("Datos recibidos:", data)
+        if data.rol == 1:  # Alumno
+            result = await db.execute(
+                select(Alumno).where(Alumno.matricula == data.usuario)
+            )
+            alumno_data = result.scalar_one_or_none()
+            
+            if not alumno_data:
+                raise HTTPException(status_code=404, detail="Alumno no encontrado")
+            if alumno_data.password != data.password:
+                raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
-            if data.rol == 1:  # Alumno
-                query = select(alumno).where(alumno.c.matricula == data.usuario)
-                result = conn.execute(query).fetchone()
+            return {
+                "message": "Login exitoso",
+                "matricula": alumno_data.matricula,
+                "nombre": alumno_data.nombre,
+                "ape1": alumno_data.ape1,
+                "ape2": alumno_data.ape2,
+                "rol": data.rol
+            }
 
-                if not result:
-                    raise HTTPException(status_code=404, detail="Alumno no encontrado")
-                if result.password != data.password:
-                    raise HTTPException(status_code=401, detail="Contraseña incorrecta")
-
-                return {
-                    "message": "Login exitoso",
-                    "matricula": result.matricula,
-                    "nombre": result.nombre,
-                    "ape1": result.ape1,
-                    "ape2": result.ape2,
-                    "rol": data.rol
-                }
-
-            elif data.rol in [2, 3]:  # Profesor o Admin
-                query = select(usuario).where(
-                    usuario.c.claveP == data.usuario,
-                    usuario.c.idRol == data.rol
+        elif data.rol in [2, 3]:  # Profesor o Admin
+            result = await db.execute(
+                select(Usuario).where(
+                    Usuario.claveP == data.usuario,
+                    Usuario.idRol == data.rol
                 )
-                result = conn.execute(query).fetchone()
+            )
+            usuario_data = result.scalar_one_or_none()
+            
+            if not usuario_data:
+                raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            if usuario_data.password != data.password:
+                raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
-                if not result:
-                    raise HTTPException(status_code=404, detail="Usuario no encontrado")
-                if result.password != data.password:
-                    raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+            return {
+                "message": "Login exitoso",
+                "claveP": str(data.usuario),
+                "nombre": usuario_data.nombre,
+                "rol": data.rol
+            }
 
-                return {
-                    "message": "Login exitoso",
-                    "claveP": str(data.usuario),
-                    "nombre": result.nombre,
-                    "rol": data.rol
-                }
-            else:
-                raise HTTPException(status_code=400, detail="Rol inválido")
+        else:
+            raise HTTPException(status_code=400, detail="Rol inválido")
 
     except Exception as e:
-        print("ERROR en login:", e)
-        raise HTTPException(status_code=500, detail="Error interno del servidor")
+        raise HTTPException(status_code=500, detail=str(e))

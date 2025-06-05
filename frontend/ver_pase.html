@@ -35,14 +35,14 @@
 
     const pase = JSON.parse(localStorage.getItem("pases") || "{}");
     const materia = localStorage.getItem("materiaSeleccionada");
-    const alumnos = usuariosSimulados.filter(u => u.rol === "alumno");
+    const alumnos = usuariosSimulados.filter(u => u.rol === 1);
     const tabla = document.querySelector("#tablaPase tbody");
 
     let listaActual = [];
 
-    if (usuario.rol === "profesor" && materia && pase[materia]) {
+    if (usuario.rol === 3 && materia && pase[materia]) {
       listaActual = pase[materia];
-    } else if (usuario.rol === "admin") {
+    } else if (usuario.rol === 3) {
       // juntar todos los pases
       Object.values(pase).forEach(arr => listaActual.push(...arr));
     }
@@ -63,9 +63,9 @@
     });
 
     function generarExcel() {
-      if (usuario.rol === "admin") {
+      if (usuario.rol === 3) {
         alert("Excel general de todo el sistema generado (simulado)");
-      } else if (usuario.rol === "profesor") {
+      } else if (usuario.rol === 2) {
         alert("Excel solo de tu materia: " + materia);
       } else {
         alert("No tienes permiso para generar Excel");
@@ -73,8 +73,8 @@
     }
 
     function volver() {
-      if (usuario.rol === "2") window.location.href = "/static/profesor.html";
-      else if (usuario.rol === "3") window.location.href = "/static/admin_panel.html";
+      if (usuario.rol === 2) window.location.href = "/static/profesor.html";
+      else if (usuario.rol === 3) window.location.href = "/static/admin_panel.html";
       else window.location.href = "/static/alumno.html";
     }
   </script>

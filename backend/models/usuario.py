@@ -1,26 +1,26 @@
-from sqlalchemy import Table, Column, Integer, String, MetaData
-from database import metadata
+from sqlalchemy import Column, Integer, String
+from database import Base
 
-usuario = Table(
-    "USUARIO",
-    metadata,
-    Column("claveP", Integer, primary_key=True),
-    Column("claveT", String(10)),
-    Column("nombre", String(20)),
-    Column("ape1", String(15)),
-    Column("ape2", String(15)),
-    Column("idRol", Integer),
-    Column("password", String(100)),  # Asegúrate que exista
-)
+# Modelo para profesores/administradores
+class Usuario(Base):
+    __tablename__ = "USUARIO"
+    
+    claveP = Column(Integer, primary_key=True)
+    claveT = Column(String(10))
+    nombre = Column(String(20))
+    ape1 = Column(String(15))
+    ape2 = Column(String(15))
+    idRol = Column(Integer)
+    password = Column(String(100))
 
-alumno = Table(
-    "ALUMNO",
-    metadata,
-    Column("matricula", String(10), primary_key=True),
-    Column("claveT", String(10)),
-    Column("nombre", String(20)),
-    Column("ape1", String(15)),
-    Column("ape2", String(15)),
-    Column("numGrupo", Integer),
-    Column("password", String(100)),  # Asegúrate que exista
-)
+# Modelo para alumnos
+class Alumno(Base):
+    __tablename__ = "ALUMNO"
+    
+    matricula = Column(String(10), primary_key=True)
+    claveT = Column(String(10))
+    nombre = Column(String(20))
+    ape1 = Column(String(15))
+    ape2 = Column(String(15))
+    numGrupo = Column(Integer)
+    password = Column(String(100))

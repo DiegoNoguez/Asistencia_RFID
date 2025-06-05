@@ -1,7 +1,7 @@
-document.getElementById("loginForm").addEventListener("submit", function(e) {
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  const rol = document.getElementById("rol").value;  // rol: 1, 2, 3
+  const rol = document.getElementById("rol").value;
   const matricula = document.getElementById("matricula").value;
   const password = document.getElementById("password").value;
 
@@ -11,38 +11,37 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
     rol: parseInt(rol)
   };
 
-  fetch("http://localhost:8000/login/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(loginData)
-  })
-  .then(async (response) => {
+  try {
+    const response = await fetch("http://localhost:8000/login/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(loginData)
+    });
+
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || "Error desconocido");
+      throw new Error(error.detail || "Error en las credenciales");
     }
-    return response.json();
-  })
-  .then(data => {
-    console.log("Respuesta del servidor:", data); // <-- Este console.log DEBE mostrar el JSON completo
+
+    const data = await response.json();
+    console.log("Respuesta del servidor:", data);
 
     if (data.message === "Login exitoso") {
-      localStorage.setItem("usuario", JSON.stringify(data)); // Guardar usuario
-
-      // Redirigir
-      if (data.rol === 1) window.location.href = "/static/alumno.html";
-      else if (data.rol === 2) window.location.href = "/static/profesor.html";
-      else if (data.rol === 3) window.location.href = "/static/admin_panel.html";
+      localStorage.setItem("usuario", JSON.stringify(data));
+      
+      // Redirigir según rol
+      switch(data.rol) {
+        case 1: window.location.href = "/static/alumno.html"; break;
+        case 2: window.location.href = "/static/profesor.html"; break;
+        case 3: window.location.href = "/static/admin_panel.html"; break;
+      }
     } else {
       document.getElementById("error").textContent = "Credenciales incorrectas.";
     }
-  })
-  .catch(error => {
+  } catch (error) {
     console.error("Error al hacer login:", error);
-    document.getElementById("error").textContent = "Hubo un error al hacer login: " + error.message;
-  });
+    document.getElementById("error").textContent = error.message;
+  }
 });
 
 

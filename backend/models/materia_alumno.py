@@ -1,4 +1,5 @@
 from sqlalchemy import Table, Column, String, MetaData, ForeignKey, PrimaryKeyConstraint
+from database import metadata
 
 metadata = MetaData()
 

@@ -30,11 +30,11 @@
     <script src="/static/js/datosSimulados.js"></script>
     <script>
     const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario || usuario.rol !== "3") {
+    if (!usuario || usuario.rol !== 3) {
         location.href = "/static/login.html";
     }
 
-    const alumnos = usuariosSimulados.filter(u => u.rol === "alumno");
+    const alumnos = usuariosSimulados.filter(u => u.rol === 1);
     const pase = JSON.parse(localStorage.getItem("pases") || "{}");
 
     const tbody = document.getElementById("tablaPaseGeneral");

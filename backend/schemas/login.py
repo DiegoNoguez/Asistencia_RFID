@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 class LoginRequest(BaseModel):
-    rol: int
     usuario: str
     password: str
+    rol: int  # 1: Alumno, 2: Profesor, 3: Admin

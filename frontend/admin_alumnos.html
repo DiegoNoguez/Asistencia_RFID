@@ -13,7 +13,7 @@
       <input type="text" id="nombre" placeholder="Nombre" required>
       <input type="text" id="ape1" placeholder="Apellido Paterno" required>
       <input type="text" id="ape2" placeholder="Apellido Materno">
-      <input type="email" id="correo" placeholder="Correo" required>
+      <input type="text" id="password" placeholder="password" required>
       <input type="text" id="tarjeta" placeholder="Tarjeta RFID" required>
       <button type="submit">Agregar Alumno</button>
     </form>
@@ -25,7 +25,7 @@
           <th>Nombre</th>
           <th>Ape. Paterno</th>
           <th>Ape. Materno</th>
-          <th>Correo</th>
+          <th>password</th>
           <th>Tarjeta RFID</th>
           <th>Acciones</th>
         </tr>
@@ -34,67 +34,89 @@
     </table>
     <a href="/static/admin_panel.html"><button>Volver</button></a>
   </div>
-
-  <script src="/static/js/datosSimulados.js"></script>
   <script>
-    const alumnosBase = usuariosSimulados.filter(u => u.rol === "alumno");
-    let alumnosList = JSON.parse(localStorage.getItem("alumnos3401")) || alumnosBase;
+  // Cargar alumnos al iniciar
+    async function cargarAlumnos() {
+      try {
+        const response = await fetch('/api/alumnos');
+        if (!response.ok) throw new Error('Error al cargar alumnos');
 
-    function cargarTabla() {
-      const tbody = document.getElementById("tablaAlumnos");
-      tbody.innerHTML = "";
-      alumnosList.forEach((alumno, index) => {
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${alumno.id_usuario}</td>
-          <td>${alumno.matricula}</td>
-          <td>${alumno.nombre}</td>
-          <td>${alumno.ape1}</td>
-          <td>${alumno.ape2 || ""}</td>
-          <td>${alumno.correo}</td>
-          <td>${alumno.tarjeta || ""}</td>
-          <td><button onclick="eliminar(${index})">Eliminar</button></td>
-        `;
-        tbody.appendChild(fila);
-      });
-    }
+        const alumnos = await response.json();
+        const tbody = document.getElementById('tablaAlumnos');
+        tbody.innerHTML = '';
 
-    function eliminar(index) {
-      if (confirm("¿Estás seguro de eliminar este alumno?")) {
-        alumnosList.splice(index, 1);
-        guardar();
-        cargarTabla();
+        alumnos.forEach(alumno => {
+          const fila = document.createElement('tr');
+          fila.innerHTML = `
+                <td>${alumno.matricula}</td>
+                <td>${alumno.matricula}</td>
+                <td>${alumno.nombre}</td>
+                <td>${alumno.ape1}</td>
+                <td>${alumno.ape2 || ''}</td>
+                <td>${alumno.password}</td>
+                <td>${alumno.claveT || ''}</td>
+                <td><button onclick="eliminarAlumno('${alumno.matricula}')">Eliminar</button></td>
+            `;
+          tbody.appendChild(fila);
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar alumnos: ' + error.message);
       }
     }
 
-    function guardar() {
-      localStorage.setItem("alumnos3401", JSON.stringify(alumnosList));
-    }
-
-    document.getElementById("formAgregar").addEventListener("submit", function(e) {
+    // Agregar alumno
+    document.getElementById('formAgregar').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const nuevo = {
-        id_usuario: alumnosList.length ? Math.max(...alumnosList.map(a => a.id_usuario)) + 1 : 1,
-        matricula: document.getElementById("matricula").value,
-        nombre: document.getElementById("nombre").value,
-        ape1: document.getElementById("ape1").value,
-        ape2: document.getElementById("ape2").value,
-        correo: document.getElementById("correo").value,
-        tarjeta: document.getElementById("tarjeta").value,
-        rol: "alumno",
-        password: "alum",
-        materias: [
-          "ACF-0905", "SCC-1017", "SCD-1027", "AEF-1031",
-          "SCA-1026", "SCD-1003", "ACA-0907", "INGLES"
-        ]
+
+      const nuevoAlumno = {
+        matricula: document.getElementById('matricula').value,
+        nombre: document.getElementById('nombre').value,
+        ape1: document.getElementById('ape1').value,
+        ape2: document.getElementById('ape2').value,
+        password: document.getElementById('password').value,
+        claveT: document.getElementById('tarjeta').value
       };
-      alumnosList.push(nuevo);
-      guardar();
-      cargarTabla();
-      this.reset();
+
+      try {
+        const response = await fetch('/api/alumnos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nuevoAlumno)
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Error al agregar alumno');
+        }
+
+        await cargarAlumnos();
+        e.target.reset();
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
     });
 
-    window.onload = cargarTabla;
+    // Eliminar alumno (implementa este endpoint en el backend si no existe)
+    async function eliminarAlumno(matricula) {
+      if (confirm('¿Eliminar este alumno?')) {
+        try {
+          const response = await fetch(`/api/alumnos/${matricula}`, {
+            method: 'DELETE'
+          });
+
+          if (!response.ok) throw new Error('Error al eliminar');
+          await cargarAlumnos();
+        } catch (error) {
+          alert('Error: ' + error.message);
+        }
+      }
+    }
+
+    // Iniciar
+    window.onload = cargarAlumnos;
   </script>
 </body>
 </html>
+
+
