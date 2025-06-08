@@ -25,7 +25,7 @@
   <script src="js/datosSimulados.js"></script>
   <script>
     const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario || (usuario.rol !== "profesor" && usuario.rol !== "admin")) {
+    if (!usuario || (usuario.rol !== 2 && usuario.rol !== 3)) {
       location.href = "login.html";
     }
 
@@ -60,7 +60,7 @@
     ];
 
 
-    const materiasUsuario = (usuario.rol === "profesor")
+    const materiasUsuario = (usuario.rol === 2)
       ? usuario.materias.map(m => m.clave)
       : horario.map(h => h.clave); // admin ve todo
 
@@ -79,7 +79,7 @@
     });
 
     function volver() {
-      if (usuario.rol === "admin") window.location.href = "admin_panel.html";
+      if (usuario.rol === 3) window.location.href = "admin_panel.html";
       else window.location.href = "profesor.html";
     }
   </script>

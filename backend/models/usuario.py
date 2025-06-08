@@ -24,3 +24,4 @@ class Alumno(Base):
     ape2 = Column(String(15))
     numGrupo = Column(Integer)
     password = Column(String(100))
+    correo = Column(String(100), unique=True, nullable=True)

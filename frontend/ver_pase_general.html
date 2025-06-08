@@ -30,7 +30,7 @@
     <script src="js/datosSimulados.js"></script>
     <script>
     const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario || usuario.rol !== "admin") {
+    if (!usuario || usuario.rol !== 3) {
         location.href = "login.html";
     }
 

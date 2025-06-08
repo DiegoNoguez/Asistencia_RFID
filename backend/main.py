@@ -36,8 +36,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from routes.alumnos import router as alumnos_router
-from routes.login import router as login_router  # Importamos el router de login
-from fastapi.staticfiles import StaticFiles
+from routes.login import router as login_router  # Importamos el router de login 
 from fastapi.responses import FileResponse
 from pathlib import Path
 
@@ -47,22 +46,20 @@ app = FastAPI()
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
 
-# Montamos los archivos estáticos en /static
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 # Configuración CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5500",
+                   "http://127.0.0.1:5500",],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["*",],
     allow_headers=["*"],
 )
 
 # Incluir routers
 app.include_router(alumnos_router, prefix="/api")
-app.include_router(login_router)  # Agregamos el router de login
-
+app.include_router(login_router)  # Agregamos el router de login 
 # Evento startup para crear tablas (opcional en desarrollo)
 @app.on_event("startup")
 async def startup_db():

@@ -31,9 +31,9 @@
   <script>
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     const materia = localStorage.getItem("materiaSeleccionada");
-    if (!usuario || usuario.rol !== "profesor" || !materia) location.href = "login.html";
+    if (!usuario || usuario.rol !== 2 || !materia) location.href = "login.html";
 
-    const alumnos = usuariosSimulados.filter(u => u.rol === "alumno");
+    const alumnos = usuariosSimulados.filter(u => u.rol === 1);
     const tbody = document.getElementById("tablaPase");
 
     alumnos.forEach(al => {

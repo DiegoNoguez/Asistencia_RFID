@@ -31,7 +31,7 @@
   <script src="js/datosSimulados.js"></script>
   <script>
     const profesor = JSON.parse(localStorage.getItem('usuario'));
-    if (!profesor || profesor.rol !== "profesor") location.href = "login.html";
+    if (!profesor || profesor.rol !== 2) location.href = "login.html";
     document.getElementById("nombreProfesor").textContent = profesor.nombre + " " + profesor.ape1;
 
     function cargarMaterias() {
