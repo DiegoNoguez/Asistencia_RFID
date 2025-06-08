@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrar Alumno y Asignar Tarjeta RFID</title>
+  <link rel="stylesheet" href="./css/admin.css">
+</head>
+<body>
+  <div class="login-container">
+    <h2>Registrar Alumno y Asignar Tarjeta RFID</h2>
+    <form id="formRegistro">
+      <input type="text" id="matricula" placeholder="Matrícula" required>
+      <input type="text" id="nombre" placeholder="Nombre" required>
+      <input type="text" id="ape1" placeholder="Apellido Paterno" required>
+      <input type="text" id="ape2" placeholder="Apellido Materno">
+      <input type="email" id="correo" placeholder="Correo" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
+      <input type="text" id="id_rol" placeholder="ID Rol" required>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <input type="text" id="uid" placeholder="UID Tarjeta RFID" required="" readonly="">
+        <button type="button" id="leerRFID">Leer RFID</button>
+      </div>
+      <button type="submit">Registrar y Asignar</button>
+    </form>
+    <div id="mensaje"></div>
+    <a href="index.html"><button>Volver</button></a>
+  </div>
+  <script>
+    
+    document.getElementById("leerRFID").addEventListener("click", async function() {
+      try {
+        const res = await fetch("http://192.168.33.100:5000/rfid_uid");
+        const data = await res.json();
+        console.log(data);
+  
+        // Validamos que uid exista y no esté vacío
+        if (data.uid !== undefined && data.uid !== null && data.uid !== "") {
+          document.getElementById("uid").value = data.uid;
+          document.getElementById("mensaje").innerText = "";
+        } else {
+          document.getElementById("mensaje").innerText = "No se detectó tarjeta RFID.";
+        }
+  
+      } catch (err) {
+        document.getElementById("mensaje").innerText = "Error al obtener UID.";
+        console.error("Error al obtener UID:", err);
+      }
+    });
+  
+    document.getElementById("formRegistro").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const datos = {
+        matricula: document.getElementById("matricula").value,
+        nombre: document.getElementById("nombre").value,
+        ape1: document.getElementById("ape1").value,
+        ape2: document.getElementById("ape2").value,
+        correo: document.getElementById("correo").value,
+        password: document.getElementById("password").value,
+        id_rol: document.getElementById("id_rol").value,
+        uid: document.getElementById("uid").value
+      };
+  
+      try {
+        const res = await fetch("/usuarios", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(datos)
+        });
+        const data = await res.json();
+        document.getElementById("mensaje").innerText = res.status === 201 ?
+          "Alumno registrado correctamente." : (data.error || "Error al registrar.");
+        this.reset();
+      } catch (err) {
+        document.getElementById("mensaje").innerText = "Error de conexión.";
+        console.error("Error de conexión:", err);
+      }
+    });
+  </script>
+  <script>
+
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+
+  </script>
+</body>
+</html>

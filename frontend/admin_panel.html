@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard Administrador</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      background: linear-gradient(to right, #74ebd5, #ACB6E5);
+    }
+    .sidebar {
+      width: 220px;
+      background: #2c3e50;
+      color: #ecf0f1;
+      display: flex;
+      flex-direction: column;
+      padding-top: 20px;
+      height: 100vh;
+      position: fixed;
+    }
+    .sidebar a, .sidebar button {
+      padding: 15px 20px;
+      text-decoration: none;
+      color: inherit;
+      background: none;
+      border: none;
+      text-align: left;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .sidebar a:hover, .sidebar button:hover {
+      background: #34495e;
+    }
+    .main-content {
+      margin-left: 220px;
+      width: calc(100% - 220px);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 400px;
+    }
+    .btn-excel {
+      background-color: #27ae60;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+      font-size: 16px;
+      border-radius: 6px;
+    }
+    .btn-excel:hover {
+      background-color: #219150;
+    }
+    select {
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2 style="text-align: center;">Administrador</h2>
+    <a href="#" onclick="redirigir('admin_alumnos.html')">👥 Gestionar Alumnos</a>
+    <a href="#" onclick="redirigir('horario.html')">📆 Ver Horario Completo</a>
+    <a href="#" onclick="redirigir('ver_pase_general.html')">✅ Ver Pase de Lista General</a>
+    <button class="btn-excel" onclick="generarExcel()">🧾 Generar Excel General</button>
+    <a href="login.html">🚪 Cerrar Sesión</a>
+  </div>
+
+  <div class="main-content">
+    <div class="card">
+      <h1>Bienvenido, <span id="nombreAdmin"></span></h1>
+      <p><strong>Seleccionar grupo:</strong></p>
+      <select id="grupoSelect">
+        <option value="3401">3401</option>
+      </select>
+    </div>
+  </div>
+
+  <script>
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (!usuario || usuario.rol !== "admin") {
+      location.href = "login.html";
+    } else {
+      document.getElementById("nombreAdmin").textContent = usuario.nombre;
+    }
+
+    function redirigir(pagina) {
+      const grupo = document.getElementById("grupoSelect").value;
+      localStorage.setItem("grupoSeleccionado", grupo);
+      location.href = pagina;
+    }
+
+    function generarExcel() {
+      alert("Excel general del sistema generado (simulado)");
+    }
+  </script>
+</body>
+</html>

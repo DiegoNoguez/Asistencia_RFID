@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pase de Lista General por Grupo</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="login-container">
+    <h2>Pase de Lista General - Grupo 3401</h2>
+    <table border="1" style="width:100%; margin-top: 20px;">
+        <thead>
+        <tr>
+            <th>Matrícula</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Materia</th>
+            <th>Profesor</th>
+            <th>Día</th>
+            <th>Horario</th>
+            <th>Asistencia</th>
+        </tr>
+        </thead>
+        <tbody id="tablaPaseGeneral"></tbody>
+    </table>
+    <br>
+    <button onclick="window.location.href='admin_panel.html'">Volver</button>
+    </div>
+
+    <script src="js/datosSimulados.js"></script>
+    <script>
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (!usuario || usuario.rol !== "admin") {
+        location.href = "login.html";
+    }
+
+    const alumnos = usuariosSimulados.filter(u => u.rol === "alumno");
+    const pase = JSON.parse(localStorage.getItem("pases") || "{}");
+
+    const tbody = document.getElementById("tablaPaseGeneral");
+
+    alumnos.forEach(al => {
+        al.materias.forEach(claveMateria => {
+        const materiaInfo = horarioGeneral.find(m => m.clave === claveMateria);
+        const profesor = materiaInfo ? materiaInfo.profesor : "Desconocido";
+
+        const clases = horarioGeneral.filter(h => h.clave === claveMateria);
+
+        clases.forEach(clase => {
+            const estaPresente = pase[claveMateria]?.find(p => p.id_usuario === al.id_usuario)?.presente;
+            const estado = estaPresente ? "Presente" : "Ausente";
+
+            const fila = document.createElement("tr");
+            fila.innerHTML = `
+            <td>${al.matricula}</td>
+            <td>${al.nombre} ${al.ape1} ${al.ape2 || ""}</td>
+            <td>${al.correo}</td>
+            <td>${clase.nombre}</td>
+            <td>${clase.profesor}</td>
+            <td>${clase.dia}</td>
+            <td>${clase.inicio} - ${clase.final}</td>
+            <td>${estado}</td>
+            `;
+            tbody.appendChild(fila);
+        });
+        });
+    });
+    </script>
+</body>
+</html>

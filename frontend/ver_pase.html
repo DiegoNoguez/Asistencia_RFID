@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pase de Lista - Guardado</title>
+  <link rel="stylesheet" href="css/verpase.css">
+</head>
+<body>
+  <div class="login-container">
+    <h2>Pase de Lista Guardado</h2>
+    <table id="tablaPase" border="1" style="width:100%; margin-top: 20px;">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Matrícula</th>
+          <th>Nombre</th>
+          <th>Apellido Paterno</th>
+          <th>Apellido Materno</th>
+          <th>Correo</th>
+          <th>Asistencia</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <br>
+    <button onclick="generarExcel()">Generar Excel</button>
+    <br><br>
+    <a href="#" onclick="volver()"><button>Volver</button></a>
+  </div>
+
+  <script src="js/datosSimulados.js"></script>
+  <script>
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (!usuario) location.href = "login.html";
+
+    const pase = JSON.parse(localStorage.getItem("pases") || "{}");
+    const materia = localStorage.getItem("materiaSeleccionada");
+    const alumnos = usuariosSimulados.filter(u => u.rol === "alumno");
+    const tabla = document.querySelector("#tablaPase tbody");
+
+    let listaActual = [];
+
+    if (usuario.rol === "profesor" && materia && pase[materia]) {
+      listaActual = pase[materia];
+    } else if (usuario.rol === "admin") {
+      // juntar todos los pases
+      Object.values(pase).forEach(arr => listaActual.push(...arr));
+    }
+
+    alumnos.forEach(al => {
+      const estado = listaActual.find(p => p.id_usuario == al.id_usuario)?.presente ? "Presente" : "Ausente";
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${al.id_usuario}</td>
+        <td>${al.matricula}</td>
+        <td>${al.nombre}</td>
+        <td>${al.ape1}</td>
+        <td>${al.ape2 || ""}</td>
+        <td>${al.correo}</td>
+        <td>${estado}</td>
+      `;
+      tabla.appendChild(fila);
+    });
+
+    function generarExcel() {
+      if (usuario.rol === "admin") {
+        alert("Excel general de todo el sistema generado (simulado)");
+      } else if (usuario.rol === "profesor") {
+        alert("Excel solo de tu materia: " + materia);
+      } else {
+        alert("No tienes permiso para generar Excel");
+      }
+    }
+
+    function volver() {
+      if (usuario.rol === "profesor") window.location.href = "profesor.html";
+      else if (usuario.rol === "admin") window.location.href = "admin_panel.html";
+      else window.location.href = "alumno.html";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Profesor</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 220px;
+            background: #2c3e50;
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+            height: 100vh;
+            position: fixed;
+        }
+        .sidebar a {
+            padding: 15px 20px;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .sidebar a:hover {
+            background: #34495e;
+        }
+        .main-content {
+            margin-left: 220px;
+            width: calc(100% - 220px);
+            height: 100vh;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2 style="text-align: center;">Profesor</h2>
+        <!-- Links que cargan en el iframe -->
+        <a href="profesor.html" target="contentFrame">Mis Grupos</a>
+        <a href="profesor_lista.html" target="contentFrame">Pase de Lista</a>
+        <a href="login.html">Cerrar Sesión</a>
+    </div>
+
+    <div class="main-content">
+        <!-- Aquí se carga profesor.html automáticamente al abrir -->
+        <iframe name="contentFrame" src="profesor.html"></iframe>
+    </div>
+
+</body>
+</html>
