@@ -94,7 +94,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     if (!usuario || usuario.rol !== 3) {
       location.href = "login.html";
@@ -109,8 +109,29 @@
     }
 
     function generarExcel() {
-      alert("Excel general del sistema generado (simulado)");
+      const claveM = "ACF-0905";  // Ajusta esto si quieres que venga de otro lado
+      const numGrup = document.getElementById("grupoSelect").value;
+
+      const url = `http://127.0.0.1:8000/reportes/excel_asistencias?claveM=${claveM}&numGrup=${numGrup}`;
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) throw new Error("No se pudo generar el archivo Excel.");
+          return response.blob();
+        })
+        .then(blob => {
+          const a = document.createElement("a");
+          const urlBlob = window.URL.createObjectURL(blob);
+          a.href = urlBlob;
+          a.download = `asistencia_${claveM}_grupo${numGrup}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        })
+        .catch(error => {
+          alert("Error al generar el Excel: " + error.message);
+        });
     }
-  </script>
+</script>
 </body>
 </html>

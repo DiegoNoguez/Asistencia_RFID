@@ -3,68 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <title>Pase de Lista General por Grupo</title>
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/verpase.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error {
+            color: #d32f2f;
+            padding: 10px;
+            background-color: #ffebee;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-    <div class="login-container">
-    <h2>Pase de Lista General - Grupo 3401</h2>
-    <table border="1" style="width:100%; margin-top: 20px;">
-        <thead>
-        <tr>
-            <th>Matrícula</th>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Materia</th>
-            <th>Profesor</th>
-            <th>Día</th>
-            <th>Horario</th>
-            <th>Asistencia</th>
-        </tr>
-        </thead>
-        <tbody id="tablaPaseGeneral"></tbody>
-    </table>
-    <br>
-    <button onclick="window.location.href='admin_panel.html'">Volver</button>
+    <div class="container">
+        <h2 id="tituloPase">Pase de Lista General - Grupo </h2>
+        <div id="error-message" class="error" style="display: none;"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Matrícula</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Materia</th>
+                    <th>Profesor</th>
+                    <th>Asistencias</th>
+                    <th>Porcentaje</th>
+                </tr>
+            </thead>
+            <tbody id="tablaPaseGeneral">
+                <tr>
+                    <td colspan="7" class="loading">Cargando datos...</td>
+                </tr>
+            </tbody>
+        </table>
+        <br>
+        <button onclick="window.location.href='admin_panel.html'">Volver</button>
     </div>
 
-    <script src="js/datosSimulados.js"></script>
     <script>
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario || usuario.rol !== 3) {
-        location.href = "login.html";
-    }
-
-    const alumnos = usuariosSimulados.filter(u => u.rol === "alumno");
-    const pase = JSON.parse(localStorage.getItem("pases") || "{}");
-
-    const tbody = document.getElementById("tablaPaseGeneral");
-
-    alumnos.forEach(al => {
-        al.materias.forEach(claveMateria => {
-        const materiaInfo = horarioGeneral.find(m => m.clave === claveMateria);
-        const profesor = materiaInfo ? materiaInfo.profesor : "Desconocido";
-
-        const clases = horarioGeneral.filter(h => h.clave === claveMateria);
-
-        clases.forEach(clase => {
-            const estaPresente = pase[claveMateria]?.find(p => p.id_usuario === al.id_usuario)?.presente;
-            const estado = estaPresente ? "Presente" : "Ausente";
-
-            const fila = document.createElement("tr");
-            fila.innerHTML = `
-            <td>${al.matricula}</td>
-            <td>${al.nombre} ${al.ape1} ${al.ape2 || ""}</td>
-            <td>${al.correo}</td>
-            <td>${clase.nombre}</td>
-            <td>${clase.profesor}</td>
-            <td>${clase.dia}</td>
-            <td>${clase.inicio} - ${clase.final}</td>
-            <td>${estado}</td>
-            `;
-            tbody.appendChild(fila);
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarPaseGeneral();
         });
-        });
-    });
+
+        async function cargarPaseGeneral() {
+            const grupo = 3401;
+            const tbody = document.getElementById("tablaPaseGeneral");
+            const tituloPase = document.getElementById("tituloPase");
+            const errorDiv = document.getElementById("error-message");
+
+            try {
+                // Mostrar estado de carga
+                tbody.innerHTML = "<tr><td colspan='7' class='loading'>Cargando datos...</td></tr>";
+                if (errorDiv) errorDiv.style.display = 'none';
+
+                // URL del backend - ajusta según tu configuración
+                const backendUrl = 'http://localhost:8000';
+                const response = await fetch(`${backendUrl}/api/asistencias/pase-lista-grupo/3401`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || "Error al obtener datos");
+                }
+
+                const data = await response.json();
+                console.log("Datos recibidos:", data);
+
+                // Actualizar título
+                tituloPase.textContent = `Pase de Lista General - Grupo ${data.grupo || grupo}`;
+
+                // Limpiar tabla
+                tbody.innerHTML = "";
+
+                // Verificar si hay datos
+                if (!data.alumnos || data.alumnos.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='7'>No hay alumnos en este grupo</td></tr>";
+                    return;
+                }
+
+                // Generar filas de la tabla
+                data.alumnos.forEach(alumno => {
+                    // Si hay múltiples materias por alumno, creamos una fila por cada materia
+                    if (alumno.asistencias && Object.keys(alumno.asistencias).length > 0) {
+                        Object.entries(alumno.asistencias).forEach(([claveM, asistencia]) => {
+                            const materiaInfo = data.materias_info?.[claveM] || { 
+                                nombre: claveM, 
+                                profesor: "No asignado" 
+                            };
+                            
+                            const row = document.createElement("tr");
+                            
+                            row.innerHTML = `
+                                <td>${alumno.matricula}</td>
+                                <td>${alumno.nombre_completo}</td>
+                                <td>${alumno.correo || "N/A"}</td>
+                                <td>${materiaInfo.nombre}</td>
+                                <td>${materiaInfo.profesor}</td>
+                                <td>${asistencia.presentes}/${asistencia.total}</td>
+                                <td>${asistencia.porcentaje}%</td>
+                            `;
+                            
+                            tbody.appendChild(row);
+                        });
+                    } else {
+                        // Si no hay asistencias registradas
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${alumno.matricula}</td>
+                            <td>${alumno.nombre_completo}</td>
+                            <td>${alumno.correo || "N/A"}</td>
+                            <td colspan="4">No hay datos de asistencia</td>
+                        `;
+                        tbody.appendChild(row);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error:", error);
+                tbody.innerHTML = `<tr><td colspan='7'>Error al cargar los datos</td></tr>`;
+                
+                if (errorDiv) {
+                    errorDiv.textContent = `Error al conectar con el servidor: ${error.message}`;
+                    errorDiv.style.display = 'block';
+                }
+            }
+        }
     </script>
 </body>
 </html>

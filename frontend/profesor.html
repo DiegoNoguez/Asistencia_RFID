@@ -4,64 +4,161 @@
   <meta charset="UTF-8">
   <title>Panel Profesor</title>
   <link rel="stylesheet" href="css/profesor.css">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .login-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #materiaContainer {
+      margin-top: 20px;
+    }
+    #materiaSelect {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin-right: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .error-message {
+      color: #f44336;
+      margin: 10px 0;
+    }
+  </style>
 </head>
 <body>
   <div class="login-container">
     <h1>Bienvenido, <span id="nombreProfesor"></span></h1>
 
-    <h3>Selecciona un grupo:</h3>
-    <select id="grupoSelect" onchange="cargarMaterias()">
-      <option value="">-- Grupo --</option>
-      <option value="3401">Grupo 3401</option>
-    </select>
-
-    <div id="materiaContainer" style="display:none;">
-      <h3>Selecciona una materia:</h3>
+    <div id="materiaContainer">
+      <h3>Tus materias:</h3>
       <select id="materiaSelect"></select>
 
       <div style="margin-top: 20px;">
         <button onclick="redirigir('ver_pase.html')">Ver pase guardado</button>
         <button onclick="redirigir('horario.html')">Ver horario</button>
+        <button onclick="descargarExcel()">Descargar Excel</button>
+
       </div>
     </div>
-    <br>
-    
   </div>
 
-  <script src="js/datosSimulados.js"></script>
-  <script>
-    const profesor = JSON.parse(localStorage.getItem('usuario'));
-    if (!profesor || profesor.rol !== 2) location.href = "login.html";
-    document.getElementById("nombreProfesor").textContent = profesor.nombre + " " + profesor.ape1;
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const usuario = JSON.parse(localStorage.getItem('usuario'));
+      const nombreProfesor = document.getElementById('nombreProfesor');
+      const materiaSelect = document.getElementById('materiaSelect');
+      const errorContainer = document.createElement('div');
+      errorContainer.className = 'error-message';
+      document.getElementById('materiaContainer').prepend(errorContainer);
 
-    function cargarMaterias() {
-      const grupo = document.getElementById("grupoSelect").value;
-      const materiaSelect = document.getElementById("materiaSelect");
-      const container = document.getElementById("materiaContainer");
-
-      if (!grupo) {
-        container.style.display = "none";
+      if (!usuario) {
+        errorContainer.textContent = "Sesión no encontrada. Redirigiendo al login...";
+        setTimeout(() => window.location.href = "login.html", 2000);
         return;
       }
 
-      localStorage.setItem("grupoSeleccionado", grupo);
-      materiaSelect.innerHTML = "";
-      profesor.materias.forEach(mat => {
-        const op = document.createElement("option");
-        op.value = mat.clave;
-        op.textContent = mat.nombre;
-        materiaSelect.appendChild(op);
-      });
+      if (parseInt(usuario.rol) !== 2) {
+        errorContainer.textContent = "Acceso restringido a profesores. Redirigiendo...";
+        setTimeout(() => window.location.href = "login.html", 2000);
+        return;
+      }
 
-      container.style.display = "block";
-    }
+      try {
+        nombreProfesor.textContent = usuario.nombre || 'Profesor';
+
+        const response = await fetch(`http://localhost:8000/api/profesor/${usuario.claveP}/materias`);
+        
+        if (!response.ok) {
+          throw new Error('Error al cargar materias');
+        }
+
+        const data = await response.json();
+
+        if (data.materias && data.materias.length > 0) {
+          materiaSelect.innerHTML = data.materias.map(m => 
+            `<option value="${m.claveM}">${m.nomMateria} (${m.claveM})</option>`
+          ).join('');
+        } else {
+          materiaSelect.innerHTML = '<option value="">No tienes materias asignadas</option>';
+        }
+
+      } catch (error) {
+        errorContainer.textContent = `Error: ${error.message}`;
+        console.error('Error:', error);
+      }
+    });
 
     function redirigir(pagina) {
-      const materia = document.getElementById("materiaSelect").value;
-      if (!materia) return alert("Selecciona una materia.");
-      localStorage.setItem("materiaSeleccionada", materia);
+      const materia = document.getElementById('materiaSelect').value;
+      if (!materia) {
+        alert('Por favor selecciona una materia primero');
+        return;
+      }
+      localStorage.setItem('materiaSeleccionada', materia);
       window.location.href = pagina;
     }
-  </script>
+
+    async function descargarExcel() {
+      const usuario = JSON.parse(localStorage.getItem('usuario'));
+      const claveP = usuario?.claveP;
+      const claveM = document.getElementById("materiaSelect").value;
+
+      if (!claveM || !claveP) {
+        alert("Faltan datos para generar el Excel.");
+        return;
+      }
+
+      const url = `http://localhost:8000/reportes/excel_asistencias_profesor?claveM=${claveM}&claveP=${claveP}`;
+      
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Error al generar Excel: ${errorText}`);
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = `asistencia_${claveM}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+
+      } catch (error) {
+        console.error("Error al descargar el Excel:", error);
+        alert("Ocurrió un error al descargar el Excel.");
+      }
+    }
+</script>
 </body>
 </html>

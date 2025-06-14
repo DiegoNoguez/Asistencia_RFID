@@ -3,79 +3,183 @@
 <head>
   <meta charset="UTF-8">
   <title>Pase de Lista - Guardado</title>
-  <link rel="stylesheet" href="css/verpase.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .login-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f271;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .presente {
+      color: green;
+      font-weight: bold;
+    }
+    .ausente {
+      color: red;
+      font-weight: bold;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      font-style: italic;
+      color: #666;
+    }
+  </style>
 </head>
 <body>
   <div class="login-container">
-    <h2>Pase de Lista Guardado</h2>
-    <table id="tablaPase" border="1" style="width:100%; margin-top: 20px;">
+    <h2>Pase de Lista Guardado - Materia: <span id="nombreMateria"></span></h2>
+    <div id="loading" class="loading">Cargando datos...</div>
+    <table id="tablaPase" style="display: none;">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Matrícula</th>
           <th>Nombre</th>
           <th>Apellido Paterno</th>
           <th>Apellido Materno</th>
-          <th>Correo</th>
           <th>Asistencia</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
     <br>
-    <button onclick="generarExcel()">Generar Excel</button>
-    <br><br>
-    <a href="#" onclick="volver()"><button>Volver</button></a>
+    <div id="buttons" style="display: none;">
+      <button onclick="generarExcel()">Generar Excel</button>
+      <button onclick="volver()">Volver</button>
+    </div>
   </div>
 
-  <script src="js/datosSimulados.js"></script>
   <script>
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario) location.href = "login.html";
+    // Estado de la aplicación
+    const appState = {
+      datosCargados: false,
+      materia: null,
+      grupo: null,
+      asistencias: []
+    };
 
-    const pase = JSON.parse(localStorage.getItem("pases") || "{}");
-    const materia = localStorage.getItem("materiaSeleccionada");
-    const alumnos = usuariosSimulados.filter(u => u.rol === "alumno");
-    const tabla = document.querySelector("#tablaPase tbody");
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (performance.navigation.type === 1) {
+        localStorage.removeItem("materiaSeleccionada");
+        localStorage.removeItem("grupoSeleccionado");
+        window.location.href = "profesor.html";
+        return;
+      }
 
-    let listaActual = [];
+      appState.materia = localStorage.getItem("materiaSeleccionada");
+      appState.grupo = localStorage.getItem("grupoSeleccionado") || 3401;
 
-    if (usuario.rol === 2 && materia && pase[materia]) {
-      listaActual = pase[materia];
-    } else if (usuario.rol === 3) {
-      // juntar todos los pases
-      Object.values(pase).forEach(arr => listaActual.push(...arr));
-    }
+      if (!appState.materia) {
+        window.location.href = "profesor.html";
+        return;
+      }
 
-    alumnos.forEach(al => {
-      const estado = listaActual.find(p => p.id_usuario == al.id_usuario)?.presente ? "Presente" : "Ausente";
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${al.id_usuario}</td>
-        <td>${al.matricula}</td>
-        <td>${al.nombre}</td>
-        <td>${al.ape1}</td>
-        <td>${al.ape2 || ""}</td>
-        <td>${al.correo}</td>
-        <td>${estado}</td>
-      `;
-      tabla.appendChild(fila);
+      await cargarPaseLista();
     });
 
-    function generarExcel() {
-      if (usuario.rol === 3) {
-        alert("Excel general de todo el sistema generado (simulado)");
-      } else if (usuario.rol === 2) {
-        alert("Excel solo de tu materia: " + materia);
-      } else {
-        alert("No tienes permiso para generar Excel");
+    // Cargar datos
+    async function cargarPaseLista() {
+      try {
+        document.getElementById("nombreMateria").textContent = appState.materia;
+        
+        const response = await fetch(
+          `http://localhost:8000/api/asistencias/?claveM=${appState.materia}&numGrup=${appState.grupo}&unique=true`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${await response.text()}`);
+        }
+        
+        appState.asistencias = await response.json();
+        mostrarAsistencias();
+        
+        // Mostrar elementos
+        document.getElementById("tablaPase").style.display = "table";
+        document.getElementById("buttons").style.display = "block";
+        document.getElementById("loading").style.display = "none";
+        
+        appState.datosCargados = true;
+        localStorage.removeItem("materiaSeleccionada");
+        
+      } catch (error) {
+        console.error("Error al cargar asistencias:", error);
+        alert(`Error: ${error.message}`);
+        window.location.href = "profesor.html";
       }
     }
 
+    // Mostrar datos en tabla
+    function mostrarAsistencias() {
+      const tbody = document.querySelector("#tablaPase tbody");
+      tbody.innerHTML = '';
+      
+      const seen = new Set();
+      
+      appState.asistencias.forEach(a => {
+        const key = `${a.matricula}-${a.claveM}-${a.fecha}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${a.matricula}</td>
+            <td>${a.nombre_completo.split(' ')[0]}</td>
+            <td>${a.nombre_completo.split(' ')[1]}</td>
+            <td>${a.nombre_completo.split(' ')[2] || ''}</td>
+            <td class="${a.presente ? 'presente' : 'ausente'}">
+              ${a.presente ? 'Presente' : 'Ausente'}
+            </td>
+          `;
+          tbody.appendChild(row);
+        }
+      });
+    }
+
+    function generarExcel() {
+      alert(`Generando Excel para: ${appState.materia}`);
+      // Lógica para generar Excel...
+    }
+
     function volver() {
-      if (usuario.rol === 2) window.location.href = "profesor.html";
-      else if (usuario.rol === 3) window.location.href = "admin_panel.html";
-      else window.location.href = "alumno.html";
+      window.location.href = "profesor.html";
     }
   </script>
 </body>

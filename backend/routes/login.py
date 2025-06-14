@@ -30,6 +30,7 @@ async def login_user(
                 "nombre": alumno_data.nombre,
                 "ape1": alumno_data.ape1,
                 "ape2": alumno_data.ape2,
+                "correo": alumno_data.correo,
                 "rol": data.rol
             }
 

@@ -59,34 +59,53 @@
       }
     }
 
-    function procesarTarjeta(entrada) {
-      const mensaje = document.getElementById("mensaje");
-      const ticket = document.getElementById("ticket");
-      const beep = document.getElementById("beep");
+   function procesarTarjeta(entrada) {
+  const mensaje = document.getElementById("mensaje");
+  const ticket = document.getElementById("ticket");
+  const beep = document.getElementById("beep");
 
-      ticket.style.display = "none";
-      mensaje.textContent = "Procesando...";
+  ticket.style.display = "none";
+  mensaje.textContent = "Procesando...";
 
-      fetch(`http://localhost:5000/buscar?claveT=${entrada}`)
-        .then(res => res.json())
-        .then(alumno => {
-          if (!alumno || alumno.error) {
-            mensaje.textContent = "Tarjeta no reconocida";
-            return;
-          }
+  // Primero buscar al alumno
+  fetch(`http://localhost:8000/terminal/buscar-alumno?claveT=${entrada}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        mensaje.textContent = data.error;
+        return;
+      }
 
-          beep.play();
-          document.getElementById("nombreAlumno").textContent = alumno.nombre;
-          document.getElementById("materiaAlumno").textContent = alumno.materia;
-          document.getElementById("horarioAlumno").textContent = alumno.horario;
-          mensaje.textContent = "Acceso concedido";
-          ticket.style.display = "block";
-        })
-        .catch(err => {
-          console.error(err);
-          mensaje.textContent = "Error de conexión con el servidor";
-        });
-    }
+      // Mostrar datos en el ticket
+      beep.play();
+      document.getElementById("nombreAlumno").textContent = data.nombre;
+      document.getElementById("materiaAlumno").textContent = data.materia_actual;
+      document.getElementById("horarioAlumno").textContent = data.horario_actual;
+      mensaje.textContent = "Acceso concedido";
+      ticket.style.display = "block";
+
+      // Registrar la asistencia automáticamente
+      const registro = {
+        matricula: entrada,
+        claveM: data.claveM,  // Usamos el claveM directamente del response
+        numGrup: data.grupo,
+        presente: true
+      };
+
+      return fetch("http://localhost:8000/terminal/registrar-asistencia", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(registro)
+      });
+    })
+    .then(res => res.ok ? res.json() : null)
+    .catch(err => {
+      console.error(err);
+      mensaje.textContent = "Error de conexión con el servidor";
+    });
+}
   </script>
 </body>
 </html>

@@ -1,42 +1,13 @@
-#from fastapi import FastAPI
-#from routes.login import router as login_router
-#from fastapi.middleware.cors import CORSMiddleware
-#from fastapi.staticfiles import StaticFiles
-#from fastapi.responses import FileResponse
-#from pathlib import Path
-#from routes.alumnos import router as alumnos_router
-#
-#
-#app = FastAPI()
-#
-## Obtener la ruta absoluta a la carpeta "frontend"
-#BASE_DIR = Path(__file__).resolve().parent
-#FRONTEND_DIR = BASE_DIR.parent / "frontend"
-#
-## Montamos los archivos estáticos en /static
-#app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
-#
-## Middleware CORS
-#app.add_middleware(
-#    CORSMiddleware,
-#    allow_origins=["*"],  # Cambia esto en producción
-#    allow_credentials=True,
-#    allow_methods=["*"],
-#    allow_headers=["*"],
-#)
-#
-## Rutas
-#app.include_router(login_router)
-#app.include_router(alumnos_router, prefix="/api")
-#
-#
-
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from routes.alumnos import router as alumnos_router
 from routes.login import router as login_router  # Importamos el router de login 
+from routes.profesor import router as profesor_router
+from routes.asistencia_api import router as asistencia_router
+from routes.generarExcel import router as generar_excel_router
+from routes.horarioProfesor import router as horario_profesor_router
+from routes.terminal_api import router as terminal_router
 from fastapi.responses import FileResponse
 from pathlib import Path
 
@@ -51,15 +22,25 @@ FRONTEND_DIR = BASE_DIR.parent / "frontend"
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5500",
-                   "http://127.0.0.1:5500",],
+                   "http://127.0.0.1:5500",
+                   "http://127.0.0.1:5501",
+                   "http://192.168.1.40:5500","*",],
     allow_credentials=True,
-    allow_methods=["*",],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Incluir routers
 app.include_router(alumnos_router, prefix="/api")
 app.include_router(login_router)  # Agregamos el router de login 
+app.include_router(profesor_router)
+app.include_router(asistencia_router)
+app.include_router(generar_excel_router)
+app.include_router(horario_profesor_router)
+app.include_router(terminal_router)
+
+
+
 # Evento startup para crear tablas (opcional en desarrollo)
 @app.on_event("startup")
 async def startup_db():
