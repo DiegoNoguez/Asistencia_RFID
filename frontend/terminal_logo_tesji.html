@@ -1,154 +1,277 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Terminal Tesji</title>
-  <link rel="stylesheet" href="css/terminal.css">
-  <style>
-    button {
-      background-color: red;
-      color: white;
-      border: 2px solid #b30000;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background-color: #b30000;
-    }
-    .error {
-      color: red;
-    }
-    .ticket {
-      display: none;
-      margin-top: 20px;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background-color: #f9f9f9;
-    }
-  </style>
-</head>
-<body>
-  <div class="pantalla">
-    <img src="logo_tesji.png" alt="Logo TESJI" class="logo">
-    <h1 id="mensaje">Pase su tarjeta...</h1>
-    <input type="text" id="entradaManual" placeholder="Ingrese número de tarjeta" />
-    <br>
-    <button id="btnEntrar">Entrar</button>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Terminal Tesji</title>
+    <link rel="stylesheet" href="css/terminal.css" />
+    <style>
+      button {
+        background-color: red;
+        color: white;
+        border: 2px solid #b30000;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      button:hover {
+        background-color: #b30000;
+      }
+      .error {
+        color: red;
+      }
+      .ticket {
+        display: none;
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pantalla">
+      <img src="logo_tesji.png" alt="Logo TESJI" class="logo" />
+      <h1 id="mensaje">Pase su tarjeta...</h1>
+      <input
+        type="text"
+        id="entradaManual"
+        placeholder="Ingrese número de tarjeta"
+      />
+      <br />
+      <button id="btnEntrar">Entrar</button>
 
-    <div class="ticket" id="ticket">
-      <p><strong>Nombre:</strong> <span id="nombreAlumno"></span></p>
-      <p><strong>Materia:</strong> <span id="materiaAlumno"></span></p>
-      <p><strong>Horario:</strong> <span id="horarioAlumno"></span></p>
-      <p><strong>Grupo:</strong> <span id="grupoAlumno"></span></p>
-      <div class="paloma">✔️</div>
+      <div class="ticket" id="ticket">
+        <p><strong>Nombre:</strong> <span id="nombreAlumno"></span></p>
+        <p><strong>Materia:</strong> <span id="materiaAlumno"></span></p>
+        <p><strong>Horario:</strong> <span id="horarioAlumno"></span></p>
+        <p><strong>Grupo:</strong> <span id="grupoAlumno"></span></p>
+        <div class="paloma">✔️</div>
+      </div>
     </div>
-  </div>
-  <audio id="beep" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" preload="auto"></audio>
+    <audio
+      id="beep"
+      src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3"
+      preload="auto"
+    ></audio>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Elementos del DOM
+    const btnEntrar = document.getElementById("btnEntrar");
+    const entradaManual = document.getElementById("entradaManual");
+    const mensaje = document.getElementById("mensaje");
+    const ticket = document.getElementById("ticket");
+    const beep = document.getElementById("beep");
+    const nombreAlumno = document.getElementById("nombreAlumno");
+    const materiaAlumno = document.getElementById("materiaAlumno");
+    const horarioAlumno = document.getElementById("horarioAlumno");
+    const grupoAlumno = document.getElementById("grupoAlumno");
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // Elementos del DOM
-      const btnEntrar = document.getElementById("btnEntrar");
-      const entradaManual = document.getElementById("entradaManual");
-      const mensaje = document.getElementById("mensaje");
-      const ticket = document.getElementById("ticket");
-      const beep = document.getElementById("beep");
+    // Variables
+    let buffer = "";
+    let timeoutRecarga = null;
 
-      // Variables
-      let buffer = "";
-
-      // Event Listeners
-      btnEntrar.addEventListener("click", procesarTarjetaManual);
-      
-      window.addEventListener("keydown", (e) => {
+    // Event Listeners
+    btnEntrar.addEventListener("click", procesarTarjetaManual);
+    
+    window.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
-          procesarTarjeta(buffer.trim());
-          buffer = "";
-        } else {
-          buffer += e.key;
+            procesarTarjeta(buffer.trim());
+            buffer = "";
+        } else if (e.key.length === 1) {
+            buffer += e.key;
         }
-      });
+    });
 
-      // Funciones
-      function procesarTarjetaManual() {
+    // Funciones
+    function procesarTarjetaManual() {
         const entrada = entradaManual.value.trim();
         if (entrada !== "") {
-          procesarTarjeta(entrada);
+            procesarTarjeta(entrada);
+            entradaManual.value = "";
         }
-      }
+    }
 
-      async function procesarTarjeta(entrada) {
-        // Resetear UI
+    function limpiarTicket() {
+        nombreAlumno.textContent = "";
+        materiaAlumno.textContent = "";
+        horarioAlumno.textContent = "";
+        grupoAlumno.textContent = "";
         ticket.style.display = "none";
-        mensaje.textContent = "Procesando...";
-        mensaje.classList.remove("error");
+    }
 
-        try {
-          const entradaLimpia = entrada.trim();
-          
-          // 1. Buscar al alumno
-          const resAlumno = await fetch(
-            `http://localhost:8000/terminal/buscar-alumno?claveT=${encodeURIComponent(entradaLimpia)}`
-          );
+    function mostrarDatosEnTicket(data, esProfesor) {
+        beep.play();
+        nombreAlumno.textContent = data.nombre;
+        materiaAlumno.textContent = data.materia_actual || "No disponible";
+        horarioAlumno.textContent = data.horario_actual || "No disponible";
+        
+        if (esProfesor) {
+            grupoAlumno.textContent = `Clave: ${data.claveM || "No disponible"}`;
+        } else {
+            grupoAlumno.textContent = `Grupo: ${data.grupo || "No disponible"}`;
+        }
+        
+        mensaje.textContent = "Procesando asistencia...";
+        ticket.style.display = "block";
+    }
 
-          if (!resAlumno.ok) {
-            const error = await resAlumno.json();
-            throw new Error(error.error || "Tarjeta/matrícula no reconocida");
-          }
+    function programarRecarga() {
+        if (timeoutRecarga) clearTimeout(timeoutRecarga);
+        timeoutRecarga = setTimeout(() => {
+            limpiarTicket();
+            mensaje.textContent = "Pase su tarjeta...";
+            location.reload();
+        }, 6000);
+    }
 
-          const data = await resAlumno.json();
+    function validarHorario(rangoHoras) {
+        if (!rangoHoras) return false;
+        
+        const [horaInicioStr, horaFinStr] = rangoHoras.split('-');
+        const ahora = new Date();
+        const horaActual = ahora.getHours() * 60 + ahora.getMinutes();
+        
+        const parseHora = (horaStr) => {
+            const [h, m] = horaStr.trim().split(':');
+            return parseInt(h) * 60 + parseInt(m);
+        };
+        
+        const inicio = parseHora(horaInicioStr);
+        const fin = parseHora(horaFinStr);
+        
+        // Margen de 15 minutos antes y después
+        return (horaActual >= (inicio - 15)) && (horaActual <= (fin + 15));
+    }
 
-          // Mostrar datos en el ticket
-          beep.play();
-          document.getElementById("nombreAlumno").textContent = data.nombre;
-          document.getElementById("materiaAlumno").textContent = data.materia_actual || "No disponible";
-          document.getElementById("horarioAlumno").textContent = data.horario_actual || "No disponible";
-          document.getElementById("grupoAlumno").textContent = data.grupo || "No disponible";
-          mensaje.textContent = "Asistencia registrada ✅";
-          ticket.style.display = "block";
+    async function registrarAsistencia(data, esProfesor) {
+        const baseUrl = "http://192.168.1.10:8000/terminal";
+        const endpoint = esProfesor 
+            ? `${baseUrl}/registrar-asistencia-profesor`
+            : `${baseUrl}/registrar-asistencia`;
+        
+        const body = esProfesor
+            ? {
+                claveP: data.claveP,
+                claveM: data.claveM,
+                presente: true
+              }
+            : {
+                matricula: data.matricula,
+                claveM: data.claveM,
+                numGrup: Number(data.grupo),
+                presente: true
+              };
 
-          // 2. Registrar asistencia
-          const registro = {
-            matricula: data.matricula,
-            claveM: data.claveM,
-            numGrup: Number(data.grupo),
-            presente: true
-          };
-
-          const resAsistencia = await fetch("http://localhost:8000/terminal/registrar-asistencia", {
+        const response = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(registro)
-          });
-
-          if (!resAsistencia.ok) {
-            const error = await resAsistencia.json();
-            throw new Error(error.error || "Error al registrar asistencia");
-            
-          }
-
-          // Recargar después de 5 segundos
-          setTimeout(() => {
-            location.reload();
-          }, 5000);
-
-        } catch (err) {
-          console.error("Error:", err);
-          mensaje.textContent = err.message;
-          mensaje.classList.add("error");
-
-          //recarga de la pagina despues de 4 segundos.
-           setTimeout(() => {
-            location.reload();
-          }, 2000);
-
+            body: JSON.stringify(body)
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || errorData.error || "Error al registrar asistencia");
         }
-      }
+        
+        return await response.json();
+    }
+
+    async function procesarTarjeta(entrada) {
+    limpiarTicket();
+    mensaje.textContent = "Procesando...";
+    mensaje.classList.remove("error");
+    
+    try {
+        const entradaLimpia = entrada.trim();
+        let data = null;
+        
+        // 1. Primero buscar como alumno
+        const resAlumno = await fetchWithTimeout(
+            `http://192.168.1.10:8000/terminal/buscar-alumno?claveT=${encodeURIComponent(entradaLimpia)}`,
+            {},
+            5000 // Timeout de 5 segundos
+        );
+        
+        if (resAlumno.ok) {
+            data = await resAlumno.json();
+            if (data && !data.error) {
+                mostrarDatosEnTicket(data, false);
+                await registrarAsistencia(data, false);
+                mensaje.textContent = "Asistencia registrada ✅";
+                programarRecarga();
+                return;
+            }
+        }
+        
+        // 2. Si no es alumno, buscar como profesor
+        const resProfesor = await fetchWithTimeout(
+            `http://192.168.1.10:8000/terminal/buscar-profesor?claveT=${encodeURIComponent(entradaLimpia)}`,
+            {},
+            5000 // Timeout de 5 segundos
+        );
+        
+        if (resProfesor.ok) {
+            data = await resProfesor.json();
+            if (data && data.success !== false) {
+                mostrarDatosEnTicket(data, true);
+                await registrarAsistencia(data, true);
+                mensaje.textContent = "Asistencia registrada ✅";
+                programarRecarga();
+                return;
+            }
+        }
+        
+        // 3. Si no es ni alumno ni profesor
+        throw new Error("Tarjeta no reconocida");
+        
+    } catch (err) {
+        console.error("Error:", err);
+        mensaje.textContent = err.name === 'AbortError' 
+            ? "Tiempo de espera agotado. Intente nuevamente."
+            : err.message;
+        mensaje.classList.add("error");
+        programarRecarga();
+    }
+}
+
+// Función fetch con timeout (colócala al inicio de tus funciones, antes de procesarTarjeta)
+async function fetchWithTimeout(resource, options = {}, timeout = 5000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    const response = await fetch(resource, {
+        ...options,
+        signal: controller.signal  
     });
-  </script>
-</body>
+    clearTimeout(id);
+    return response;
+}
+
+
+
+function mostrarDatosEnTicket(data, esProfesor) {
+    if (!data) {
+        throw new Error("Datos no disponibles");
+    }
+    
+    beep.play();
+    
+    // Asegurarse de que los datos existan antes de mostrarlos
+    nombreAlumno.textContent = data.nombre || "No disponible";
+    materiaAlumno.textContent = data.materia_actual || "No disponible";
+    horarioAlumno.textContent = data.horario_actual || "No disponible";
+    
+    if (esProfesor) {
+        grupoAlumno.textContent = `Clave: ${data.claveM || "No disponible"}`;
+    } else {
+        grupoAlumno.textContent = `Grupo: ${data.grupo || "No disponible"}`;
+    }
+    
+    ticket.style.display = "block";
+}
+});
+</script>
+  </body>
 </html>

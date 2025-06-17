@@ -19,32 +19,32 @@ MATERIAS_POR_DEFECTO = ["ACA-0907", "ACF-0905", "AEF-1031", "SCA-1026", "SCC-101
 # Horario predefinido (basado en lo que proporcionaste)
 HORARIO_POR_DEFECTO = [
     # Lunes
-    {"claveM": "SCA-1026", "dia": "Lunes", "hora": "07:00–09:00"},
-    {"claveM": "ING-001", "dia": "Lunes", "hora": "09:00–11:00"},
-    {"claveM": "AEF-1031", "dia": "Lunes", "hora": "11:00–13:00"},
-    {"claveM": "ACF-0905", "dia": "Lunes", "hora": "13:00–15:00"},
+    {"claveM": "SCA-1026", "dia": "Lunes", "hora": "07:00-09:00"},
+    {"claveM": "ING-001", "dia": "Lunes", "hora": "09:00-11:00"},
+    {"claveM": "AEF-1031", "dia": "Lunes", "hora": "11:00-13:00"},
+    {"claveM": "ACF-0905", "dia": "Lunes", "hora": "13:00-15:00"},
     
     # Martes
-    {"claveM": "AEF-1031", "dia": "Martes", "hora": "08:00–10:00"},
-    {"claveM": "ACA-0907", "dia": "Martes", "hora": "10:00–12:00"},
-    {"claveM": "SCD-1027", "dia": "Martes", "hora": "12:00–15:00"},
-    {"claveM": "ING-001", "dia": "Martes", "hora": "15:00–16:00"},
+    {"claveM": "AEF-1031", "dia": "Martes", "hora": "08:00-10:00"},
+    {"claveM": "ACA-0907", "dia": "Martes", "hora": "10:00-12:00"},
+    {"claveM": "SCD-1027", "dia": "Martes", "hora": "12:00-15:00"},
+    {"claveM": "ING-001", "dia": "Martes", "hora": "15:00-16:00"},
     
     # Miércoles
-    {"claveM": "AEF-1031", "dia": "Miércoles", "hora": "08:00–11:00"},
-    {"claveM": "SCC-1017", "dia": "Miércoles", "hora": "11:00–13:00"},
-    {"claveM": "SCD-1003", "dia": "Miércoles", "hora": "13:00–15:00"},
+    {"claveM": "AEF-1031", "dia": "Miércoles", "hora": "08:00-11:00"},
+    {"claveM": "SCC-1017", "dia": "Miércoles", "hora": "11:00-13:00"},
+    {"claveM": "SCD-1003", "dia": "Miércoles", "hora": "13:00-15:00"},
     
     # Jueves
-    {"claveM": "SCA-1026", "dia": "Jueves", "hora": "07:00–09:00"},
-    {"claveM": "SCD-1027", "dia": "Jueves", "hora": "09:00–11:00"},
-    {"claveM": "SCC-1017", "dia": "Jueves", "hora": "11:00–13:00"},
-    {"claveM": "ACA-0907", "dia": "Jueves", "hora": "13:00–15:00"},
+    {"claveM": "SCA-1026", "dia": "Jueves", "hora": "07:00-09:00"},
+    {"claveM": "SCD-1027", "dia": "Jueves", "hora": "09:00-11:00"},
+    {"claveM": "SCC-1017", "dia": "Jueves", "hora": "11:00-13:00"},
+    {"claveM": "ACA-0907", "dia": "Jueves", "hora": "13:00-15:00"},
     
     # Viernes
-    {"claveM": "ING-001", "dia": "Viernes", "hora": "07:00–09:00"},
-    {"claveM": "SCD-1003", "dia": "Viernes", "hora": "09:00–12:00"},
-    {"claveM": "ACF-0905", "dia": "Viernes", "hora": "12:00–15:00"}
+    {"claveM": "ING-001", "dia": "Viernes", "hora": "07:00-09:00"},
+    {"claveM": "SCD-1003", "dia": "Viernes", "hora": "09:00-12:00"},
+    {"claveM": "ACF-0905", "dia": "Viernes", "hora": "12:00-15:00"}
 ]
 
 # Esquemas Pydantic para validación y documentación

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pase de Lista General por Grupo</title>
+    <link rel="stylesheet" href="css/verpase.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2 id="tituloPase">Pase de Lista General de profesores</h2>
+        <div id="error-message" class="error" style="display: none;"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ClaveP</th>
+                    <th>Nombre</th>
+                    <th>Materia</th>
+                    <th>Clave Materia</th>
+                    <th>Asistencias</th>
+                    <th>Total Clases</th>
+                    <th>Porcentaje</th>
+                </tr>
+            </thead>
+            <tbody id="tablaPaseGeneral">
+                <tr>
+                    <td colspan="7" class="loading">Cargando datos...</td>
+                </tr>
+            </tbody>
+        </table>
+        <br>
+        <button onclick="window.location.href='admin_panel.html'">Volver</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarAsistenciaProfesores();
+        });
+
+        function cargarAsistenciaProfesores() {
+            const tabla = document.getElementById('tablaPaseGeneral');
+            const errorDiv = document.getElementById('error-message');
+            
+            // Mostrar mensaje de carga
+            tabla.innerHTML = '<tr><td colspan="7" class="loading">Cargando datos...</td></tr>';
+            errorDiv.style.display = 'none';
+
+            axios.get('http://localhost:8000/asistencia-profesores/')
+                .then(response => {
+                    if (response.data.length === 0) {
+                        tabla.innerHTML = '<tr><td colspan="7">No hay datos de asistencia disponibles</td></tr>';
+                        return;
+                    }
+
+                    let html = '';
+                    response.data.forEach(profesor => {
+                        html += `
+                            <tr>
+                                <td>${profesor.claveP}</td>
+                                <td>${profesor.nombre}</td>
+                                <td>${profesor.materia}</td>
+                                <td>${profesor.claveM}</td>
+                                <td>${profesor.asistencias}</td>
+                                <td>${profesor.total_clases}</td>
+                                <td>${profesor.porcentaje}%</td>
+                            </tr>
+                        `;
+                    });
+
+                    tabla.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error al cargar los datos:', error);
+                    errorDiv.textContent = 'Error al cargar los datos de asistencia. Por favor, intente nuevamente.';
+                    errorDiv.style.display = 'block';
+                    tabla.innerHTML = '<tr><td colspan="7">Error al cargar datos</td></tr>';
+                });
+        }
+    </script>
+</body>
+</html>

@@ -8,6 +8,7 @@ from routes.asistencia_api import router as asistencia_router
 from routes.generarExcel import router as generar_excel_router
 from routes.horarioProfesor import router as horario_profesor_router
 from routes.terminal_api import router as terminal_router
+from routes.asistencia_profesor import router as asistencia_profesor_router
 from fastapi.responses import FileResponse
 from pathlib import Path
 
@@ -38,6 +39,7 @@ app.include_router(asistencia_router)
 app.include_router(generar_excel_router)
 app.include_router(horario_profesor_router)
 app.include_router(terminal_router)
+app.include_router(asistencia_profesor_router)
 
 
 

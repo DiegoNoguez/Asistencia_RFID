@@ -4,63 +4,6 @@
     <meta charset="UTF-8">
     <title>Pase de Lista General por Grupo</title>
     <link rel="stylesheet" href="css/verpase.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-        .error {
-            color: #d32f2f;
-            padding: 10px;
-            background-color: #ffebee;
-            border-radius: 4px;
-            margin: 10px 0;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -88,7 +31,7 @@
         <button onclick="window.location.href='admin_panel.html'">Volver</button>
     </div>
 
-    <script>
+      <script>
         document.addEventListener('DOMContentLoaded', function() {
             cargarPaseGeneral();
         });
@@ -106,7 +49,7 @@
 
                 // URL del backend - ajusta según tu configuración
                 const backendUrl = 'http://localhost:8000';
-                const response = await fetch(`${backendUrl}/api/asistencias/pase-lista-grupo/3401`);
+                const response = await fetch(`${backendUrl}/api/asistencias/pase-lista-grupo/${grupo}`);
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -133,21 +76,23 @@
                     // Si hay múltiples materias por alumno, creamos una fila por cada materia
                     if (alumno.asistencias && Object.keys(alumno.asistencias).length > 0) {
                         Object.entries(alumno.asistencias).forEach(([claveM, asistencia]) => {
-                            const materiaInfo = data.materias_info?.[claveM] || { 
+                            const materia = data.materias[claveM] || { 
                                 nombre: claveM, 
-                                profesor: "No asignado" 
+                                profesor: "Profesor no asignado" 
                             };
                             
+                            const porcentajeClass = asistencia.porcentaje >= 80 ? 'porcentaje-alto' : 
+                                                asistencia.porcentaje >= 50 ? 'porcentaje-medio' : 'porcentaje-bajo';
+
                             const row = document.createElement("tr");
-                            
                             row.innerHTML = `
                                 <td>${alumno.matricula}</td>
                                 <td>${alumno.nombre_completo}</td>
                                 <td>${alumno.correo || "N/A"}</td>
-                                <td>${materiaInfo.nombre}</td>
-                                <td>${materiaInfo.profesor}</td>
+                                <td>${materia.nombre}</td>
+                                <td>${materia.profesor}</td>
                                 <td>${asistencia.presentes}/${asistencia.total}</td>
-                                <td>${asistencia.porcentaje}%</td>
+                                <td class="porcentaje-cell ${porcentajeClass}">${asistencia.porcentaje}%</td>
                             `;
                             
                             tbody.appendChild(row);
@@ -176,5 +121,6 @@
             }
         }
     </script>
+    
 </body>
 </html>

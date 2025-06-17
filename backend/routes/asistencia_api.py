@@ -73,7 +73,7 @@ async def crear_asistencia(asistencia_data: AsistenciaCreate, db: AsyncSession =
     # Obtención de datos adicionales (existente)
     alumno = await db.scalar(select(Alumno).where(Alumno.matricula == nueva_asistencia.matricula))
     materia = await db.scalar(select(Materia).where(Materia.claveM == nueva_asistencia.claveM))
-    profesor = await db.scalar(select(Usuario).where(Usuario.claveP == materia.claveP))
+    profesor = await db.scalar(select(Usuario).where(Usuario.claveP == materia.ClaveM))
     
     return {
         "idAsistencia": nueva_asistencia.idAsistencia,
@@ -86,7 +86,7 @@ async def crear_asistencia(asistencia_data: AsistenciaCreate, db: AsyncSession =
         "horaRegistro": str(nueva_asistencia.horaRegistro),
         "presente": nueva_asistencia.presente,
         "observaciones": nueva_asistencia.observaciones,
-        "profesor": f"{profesor.nombre} {profesor.ape1}" if profesor else "Profesor no asignado"
+        "profesor": f"{profesor.nombre} {profesor.ape1} {profesor.ape2}" if profesor else "Profesor no asignado"
     }
 
 @router.get("/", response_model=List[AsistenciaResponse])
@@ -109,7 +109,8 @@ async def obtener_asistencias(
             Alumno.ape2,
             Materia.nomMateria,
             Usuario.nombre.label("profesor_nombre"),
-            Usuario.ape1.label("profesor_ape1")
+            Usuario.ape1.label("profesor_ape1"),
+            Usuario.ape2.label("profesor_ape2")
         )
         .join(Alumno, Alumno.matricula == Asistencia.matricula)
         .join(Materia, Materia.claveM == Asistencia.claveM)
@@ -444,24 +445,31 @@ async def obtener_pase_lista_grupo(
                 status_code=404
             )
 
-        # 3. Obtener información de materias
-        materias_info = await db.execute(
+        # 3. Obtener información de materias con profesor (parte modificada)
+        materias_info = {}
+        materias_result = await db.execute(
             select(
                 Materia.claveM,
                 Materia.nomMateria,
                 Usuario.nombre.label("profesor_nombre"),
-                Usuario.ape1.label("profesor_ape1")
+                Usuario.ape1.label("profesor_ape1"),
+                Usuario.ape2.label("profesor_ape2")
             )
             .join(UsuarioMateria, UsuarioMateria.claveM == Materia.claveM)
             .join(Usuario, Usuario.claveP == UsuarioMateria.claveP)
             .where(Materia.claveM.in_(claves_materias))
         )
-        materias_info = materias_info.all()
+        
+        for m in materias_result:
+            materias_info[m.claveM] = {
+                "nombre": m.nomMateria,
+                "profesor": f"{m.profesor_nombre} {m.profesor_ape1} {m.profesor_ape2 or ''}".strip()
+            }
 
-        # 4. Procesar datos para la respuesta
+        # 4. Procesar datos para la respuesta (resto del código igual)
         response_data = {
             "grupo": numGrup,
-            "materias": [{"claveM": m.claveM, "nombre": m.nomMateria} for m in materias_info],
+            "materias": materias_info,  # Cambiado a diccionario
             "alumnos": []
         }
 
